@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: black;
+        }
+        canvas {
+            border: 1px solid white;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pong" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('pong');
+        const context = canvas.getContext('2d');
+
+        let paddleWidth = 10, paddleHeight = 100;
+        let playerPaddle = { x: 0, y: (canvas.height - paddleHeight) / 2, width: paddleWidth, height: paddleHeight };
+        let enemyPaddle = { x: canvas.width - paddleWidth, y: (canvas.height - paddleHeight) / 2, width: paddleWidth, height: paddleHeight };
+        let ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 10, speed: 5, velocityX: 5, velocityY: 5 };
+
+        function drawRect(x, y, width, height, color) {
+            context.fillStyle = color;
+            context.fillRect(x, y, width, height);
+        }
+
+        function drawArc(x, y, radius, color) {
+            context.fillStyle = color;
+            context.beginPath();
+            context.arc(x, y, radius, 0, Math.PI * 2, false);
+            context.closePath();
+            context.fill();
+        }
+
+        function update() {
+            ball.x += ball.velocityX;
+            ball.y += ball.velocityY;
+
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+                ball.velocityY = -ball.velocityY;
+            }
+
+            let playerCollide = ball.x - ball.radius < playerPaddle.x + playerPaddle.width &&
+                ball.y > playerPaddle.y && ball.y < playerPaddle.y + playerPaddle.height;
+            let enemyCollide = ball.x + ball.radius > enemyPaddle.x &&
+                ball.y > enemyPaddle.y && ball.y < enemyPaddle.y + enemyPaddle.height;
+
+            if (playerCollide || enemyCollide) {
+                ball.velocityX = -ball.velocityX;
+            }
+
+            if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
+                resetBall();
+            }
+        }
+
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.velocityX = 5;
+            ball.velocityY = 5;
+        }
+
+        function draw() {
+            drawRect(0, 0, canvas.width, canvas.height, "black");
+            drawRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height, "white");
+            drawRect(enemyPaddle.x, enemyPaddle.y, enemyPaddle.width, enemyPaddle.height, "white");
+            drawArc(ball.x, ball.y, ball.radius, "white");
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.addEventListener('mousemove', (event) => {
+            let rect = canvas.getBoundingClientRect();
+            playerPaddle.y = event.clientY - rect.top - playerPaddle.height / 2;
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>
